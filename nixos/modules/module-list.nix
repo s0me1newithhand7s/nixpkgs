@@ -582,6 +582,7 @@
   ./services/development/zammad.nix
   ./services/display-managers/default.nix
   ./services/display-managers/cosmic-greeter.nix
+  ./services/display-managers/gdm.nix
   ./services/display-managers/greetd.nix
   ./services/display-managers/sddm.nix
   ./services/display-managers/ly.nix
@@ -1680,7 +1681,6 @@
   ./services/x11/colord.nix
   ./services/x11/desktop-managers/default.nix
   ./services/x11/display-managers/default.nix
-  ./services/x11/display-managers/gdm.nix
   ./services/x11/display-managers/lightdm.nix
   ./services/x11/display-managers/slim.nix
   ./services/x11/display-managers/startx.nix
