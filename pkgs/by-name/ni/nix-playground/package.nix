@@ -38,7 +38,7 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
 
   # Tests require certificates
   # https://github.com/NixOS/nixpkgs/pull/72544#issuecomment-582674047
-  SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+  env.SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
   pythonImportsCheck = [ "nix_playground" ];
 
@@ -47,7 +47,7 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
     mainProgram = "np";
     homepage = "https://github.com/LaunchPlatform/nix-playground";
     changelog = "https://github.com/LaunchPlatform/nix-playground/releases/tag/${finalAttrs.src.tag}";
-    license = with lib.licenses; [ mit ];
+    license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ fangpen ];
   };
 })

@@ -6,6 +6,7 @@
   django,
   pytestCheckHook,
   pytest-django,
+  pytest-xdist,
   setuptools,
 }:
 
@@ -29,6 +30,7 @@ buildPythonPackage rec {
     django-environ
     pytestCheckHook
     pytest-django
+    pytest-xdist
   ];
 
   pythonImportsCheck = [ "guardian" ];
@@ -36,7 +38,7 @@ buildPythonPackage rec {
   meta = {
     description = "Per object permissions for Django";
     homepage = "https://github.com/django-guardian/django-guardian";
-    license = with lib.licenses; [ bsd2 ];
+    license = lib.licenses.bsd2;
     maintainers = [ ];
   };
 }

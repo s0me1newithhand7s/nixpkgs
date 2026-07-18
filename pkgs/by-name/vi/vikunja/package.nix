@@ -14,12 +14,12 @@
 }:
 
 let
-  version = "1.1.0";
+  version = "2.3.0";
   src = fetchFromGitHub {
     owner = "go-vikunja";
     repo = "vikunja";
     rev = "v${version}";
-    hash = "sha256-xxfn3UoKreRDRC5GR7pLL8gkBLe6VmBYdps9eFc5c3g=";
+    hash = "sha256-bdHiSFaN0vNQMhy6GPlpoFeYrk2CLvO7E30d8J/9GC0=";
   };
 
   frontend = stdenv.mkDerivation (finalAttrs: {
@@ -36,8 +36,8 @@ let
         sourceRoot
         ;
       pnpm = pnpm_10;
-      fetcherVersion = 1;
-      hash = "sha256-NrysokKNmKAUdiC0o4qEPvsHr7KH7mMrcrEjxwmgb+g=";
+      fetcherVersion = 3;
+      hash = "sha256-cDGeIrCxZtcomu3YxikutjXpVe3EeUZ/L3+3y9yx67s=";
     };
 
     nativeBuildInputs = [
@@ -46,6 +46,11 @@ let
       pnpmConfigHook
       pnpm_10
     ];
+
+    postPatch = ''
+      substituteInPlace src/version.json \
+        --replace-fail '"dev"' '"${finalAttrs.version}"'
+    '';
 
     doCheck = true;
 
@@ -97,7 +102,7 @@ buildGoModule {
       mage
     ];
 
-  vendorHash = "sha256-PV6WlJlG839FtWUR6QONMuuBnmo+AA53xmUNbodQdzk=";
+  vendorHash = "sha256-4UMnfbwL2JFnw9KZDO5sq6XCSBUD5ejeqp6vaTbYWJc=";
 
   inherit frontend;
 
@@ -142,11 +147,14 @@ buildGoModule {
   };
 
   meta = {
-    changelog = "https://kolaente.dev/vikunja/api/src/tag/v${version}/CHANGELOG.md";
+    changelog = "https://github.com/go-vikunja/vikunja/blob/v${version}/CHANGELOG.md";
     description = "Todo-app to organize your life";
     homepage = "https://vikunja.io/";
     license = lib.licenses.agpl3Plus;
-    maintainers = with lib.maintainers; [ leona ];
+    maintainers = with lib.maintainers; [
+      leona
+      adamcstephens
+    ];
     mainProgram = "vikunja";
     platforms = lib.platforms.linux;
   };

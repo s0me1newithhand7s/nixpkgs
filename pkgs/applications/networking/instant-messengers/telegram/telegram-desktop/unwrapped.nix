@@ -6,8 +6,8 @@
   pkg-config,
   cmake,
   ninja,
-  clang,
   python3,
+  qtshadertools,
   tdlib,
   tg_owt ? callPackage ./tg_owt.nix { inherit stdenv; },
   qtbase,
@@ -15,11 +15,11 @@
   qtwayland,
   kcoreaddons,
   lz4,
-  xxHash,
+  xxhash,
   ffmpeg_6,
   protobuf,
-  openalSoft,
-  minizip,
+  openal-soft,
+  minizip-ng-compat,
   range-v3,
   tl-expected,
   hunspell,
@@ -28,8 +28,13 @@
   microsoft-gsl,
   boost,
   ada,
+  cmark-gfm,
+  libavif,
+  libheif,
+  libjxl,
   libicns,
   apple-sdk_15,
+  llvmPackages,
   nix-update-script,
 }:
 
@@ -42,14 +47,14 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "telegram-desktop-unwrapped";
-  version = "6.5.1";
+  version = "7.0.2";
 
   src = fetchFromGitHub {
     owner = "telegramdesktop";
     repo = "tdesktop";
     rev = "v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-y2sf2wDJ6dYxRdDLKIr78z9tPBIoh2WICg4zJBmb85Q=";
+    hash = "sha256-G/A5J2m1sXHD50zDmMD9ehnorAGRjnQ+YGMv6DEiJcQ=";
   };
 
   nativeBuildInputs = [
@@ -57,21 +62,25 @@ stdenv.mkDerivation (finalAttrs: {
     cmake
     ninja
     python3
+    qtshadertools
   ]
   ++ lib.optionals stdenv.hostPlatform.isLinux [
-    # to build bundled libdispatch
-    clang
     gobject-introspection
+  ]
+  # Work around ld64's libc++ hardening issue causing Trace/BPT trap: 5
+  # TODO: Remove once nixpkgs#536365 reaches this branch.
+  ++ lib.optionals stdenv.hostPlatform.isDarwin [
+    llvmPackages.lld
   ];
 
   buildInputs = [
     qtbase
     qtsvg
     lz4
-    xxHash
+    xxhash
     ffmpeg_6
-    openalSoft
-    minizip
+    openal-soft
+    minizip-ng-compat
     range-v3
     tl-expected
     rnnoise
@@ -79,6 +88,7 @@ stdenv.mkDerivation (finalAttrs: {
     microsoft-gsl
     boost
     ada
+    cmark-gfm
     (tdlib.override { tde2eOnly = true; })
   ]
   ++ lib.optionals stdenv.hostPlatform.isLinux [
@@ -90,14 +100,25 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optionals stdenv.hostPlatform.isDarwin [
     apple-sdk_15
     libicns
+    libavif
+    libheif
+    libjxl
   ];
 
   dontWrapQtApps = true;
+
+  # Work around ld64's libc++ hardening issue causing Trace/BPT trap: 5
+  # TODO: Remove once nixpkgs#536365 reaches this branch.
+  env = lib.optionalAttrs stdenv.hostPlatform.isDarwin {
+    NIX_CFLAGS_LINK = "-fuse-ld=lld";
+  };
 
   cmakeFlags = [
     # We're allowed to used the API ID of the Snap package:
     (lib.cmakeFeature "TDESKTOP_API_ID" "611335")
     (lib.cmakeFeature "TDESKTOP_API_HASH" "d524b414d21f4d37f08684c1df41ac9c")
+    # swift 6 is not available in nixpkgs
+    (lib.cmakeBool "DESKTOP_APP_DISABLE_SWIFT6" true)
   ];
 
   installPhase = lib.optionalString stdenv.hostPlatform.isDarwin ''

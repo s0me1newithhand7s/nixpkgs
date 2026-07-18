@@ -8,16 +8,17 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "systemctl-tui";
-  version = "0.5.1";
+  version = "0.6.1";
+  __structuredAttrs = true;
 
   src = fetchFromGitHub {
     owner = "rgwood";
     repo = "systemctl-tui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-KB8iOaN3ndi8uQq1t7TJ1IVHjJEeDBAQ5BRjxwR4Gjo=";
+    hash = "sha256-+vPzfnRFNXY1ajhvFLyQ9j6ReaEclKSOtjsD+/as9u0=";
   };
 
-  cargoHash = "sha256-l2cIr+ENjGOBuB5rEO+ze2Ihhds2zfejvuY00YzLrf8=";
+  cargoHash = "sha256-RXb9ITIoUtJb9SO2r2m2ukNk3EEuSrcijZ1GjzgEnYg=";
 
   nativeInstallCheckInputs = [
     versionCheckHook
@@ -25,7 +26,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   doInstallCheck = true;
 
   passthru = {
-    updateScript = nix-update-script;
+    updateScript = nix-update-script { };
   };
 
   meta = {

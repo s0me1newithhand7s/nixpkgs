@@ -28,12 +28,12 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "gpu-screen-recorder";
-  version = "5.12.3";
+  version = "5.13.9";
 
   src = fetchgit {
     url = "https://repo.dec05eba.com/gpu-screen-recorder";
     tag = finalAttrs.version;
-    hash = "sha256-sl5apGLA64xgHxk7C47aK+OTVPjAVkpxi2yhN6HoJyk=";
+    hash = "sha256-rGjS21eY2XfcdRwmKE2hJO1+FIXAmmBJ4y2oKgSwoRM=";
   };
 
   nativeBuildInputs = [
@@ -95,6 +95,6 @@ stdenv.mkDerivation (finalAttrs: {
       babbaj
       js6pak
     ];
-    platforms = [ "x86_64-linux" ];
+    platforms = lib.platforms.linux;
   };
 })

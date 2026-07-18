@@ -6,13 +6,19 @@
 # };
 # Make additional configurations on demand:
 # wine.override { wineBuild = "wine32"; wineRelease = "staging"; };
-{
+args@{
   lib,
   stdenv,
   callPackage,
   darwin,
   wineRelease ? "stable",
-  wineBuild ? if stdenv.hostPlatform.system == "x86_64-linux" then "wineWow" else "wine32",
+  wineBuild ?
+    if stdenv.hostPlatform.system == "x86_64-linux" then
+      "wineWow"
+    else if stdenv.hostPlatform.isAarch64 then
+      "wine64"
+    else
+      "wine32",
   gettextSupport ? false,
   fontconfigSupport ? false,
   alsaSupport ? false,
@@ -39,16 +45,29 @@
   vulkanSupport ? false,
   sdlSupport ? false,
   usbSupport ? false,
-  mingwSupport ? stdenv.hostPlatform.isDarwin,
+  mingwSupport ? stdenv.hostPlatform.isDarwin || stdenv.hostPlatform.isAarch64,
   waylandSupport ? false,
   x11Support ? false,
   ffmpegSupport ? false,
   embedInstallers ? false, # The Mono and Gecko MSI installers
   moltenvk, # Allow users to override MoltenVK easily
+  smartcardSupport ? false,
 }:
 
 let
   sources = callPackage ./sources.nix { };
+
+  supportFlags = lib.filterAttrs (
+    name: _:
+    !builtins.elem name [
+      "lib"
+      "stdenv"
+      "callPackage"
+      "darwin"
+      "wineRelease"
+      "wineBuild"
+    ]
+  ) args;
 
   # Map user-facing release names to sources, pname suffix, and staging flag
   releaseInfo = {
@@ -77,47 +96,7 @@ let
   };
 
   baseWine = lib.getAttr wineBuild (
-    callPackage ./packages.nix (
-      releaseInfo.${wineRelease}
-      // {
-        supportFlags = {
-          inherit
-            alsaSupport
-            cairoSupport
-            cupsSupport
-            cursesSupport
-            dbusSupport
-            embedInstallers
-            fontconfigSupport
-            gettextSupport
-            gphoto2Support
-            gstreamerSupport
-            gtkSupport
-            krb5Support
-            mingwSupport
-            netapiSupport
-            odbcSupport
-            openclSupport
-            openglSupport
-            pcapSupport
-            pulseaudioSupport
-            saneSupport
-            sdlSupport
-            tlsSupport
-            udevSupport
-            usbSupport
-            v4lSupport
-            vaSupport
-            vulkanSupport
-            waylandSupport
-            x11Support
-            ffmpegSupport
-            xineramaSupport
-            ;
-        };
-        inherit moltenvk;
-      }
-    )
+    callPackage ./packages.nix (releaseInfo.${wineRelease} // supportFlags)
   );
 in
 if wineRelease == "yabridge" then

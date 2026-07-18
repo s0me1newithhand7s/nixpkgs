@@ -35,18 +35,21 @@
 
 buildPythonPackage (finalAttrs: {
   pname = "spyder-kernels";
-  version = "3.1.2";
+  version = "3.1.5";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "spyder-ide";
     repo = "spyder-kernels";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-HqjgeCmjQfwSVaJNWnDYHGeC81/iLzmAmnFrPhpwfLY=";
+    hash = "sha256-FdZKWtMRTLq16rULc4lQx4GywtyZ+ori2z85PgK1geM=";
   };
 
   build-system = [ setuptools ];
 
+  pythonRelaxDeps = [
+    "ipykernel"
+  ];
   dependencies = [
     cloudpickle
     ipykernel

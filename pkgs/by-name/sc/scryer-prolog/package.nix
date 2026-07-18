@@ -23,13 +23,13 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   buildInputs = [ openssl ];
 
-  CARGO_FEATURE_USE_SYSTEM_LIBS = true;
+  env.CARGO_FEATURE_USE_SYSTEM_LIBS = true;
 
   meta = {
     description = "Modern Prolog implementation written mostly in Rust";
     mainProgram = "scryer-prolog";
     homepage = "https://github.com/mthom/scryer-prolog";
-    license = with lib.licenses; [ bsd3 ];
+    license = lib.licenses.bsd3;
     maintainers = with lib.maintainers; [
       malbarbo
       wkral

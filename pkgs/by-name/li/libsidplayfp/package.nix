@@ -19,14 +19,14 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "libsidplayfp";
-  version = "2.16.0";
+  version = "2.16.1";
 
   src = fetchFromGitHub {
     owner = "libsidplayfp";
     repo = "libsidplayfp";
     tag = "v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-0eupR9HNhF8TERCtNTH8qx7mohLI7im8btJtByWHoY8=";
+    hash = "sha256-gOnLjOw9TN2b0ne7Otm5DZhV/2D1xjLxwnaYilnlBgc=";
   };
 
   outputs = [ "out" ] ++ lib.optionals docSupport [ "doc" ];
@@ -93,7 +93,7 @@ stdenv.mkDerivation (finalAttrs: {
     tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
     updateScript = gitUpdater {
       rev-prefix = "v";
-      ignoredVersions = "rc$";
+      ignoredVersions = "[a-zA-Z]";
     };
   };
 
@@ -107,7 +107,7 @@ stdenv.mkDerivation (finalAttrs: {
     '';
     homepage = "https://github.com/libsidplayfp/libsidplayfp";
     changelog = "https://github.com/libsidplayfp/libsidplayfp/releases/tag/v${finalAttrs.version}";
-    license = with lib.licenses; [ gpl2Plus ];
+    license = lib.licenses.gpl2Plus;
     maintainers = with lib.maintainers; [
       ramkromberg
       OPNA2608

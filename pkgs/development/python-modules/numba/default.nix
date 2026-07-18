@@ -1,21 +1,24 @@
 {
   lib,
   stdenv,
-  pythonAtLeast,
   fetchFromGitHub,
-  fetchpatch2,
-  python,
   buildPythonPackage,
-  setuptools,
-  numpy,
-  numpy_1,
-  llvmlite,
   replaceVars,
-  writers,
+
+  # nativeBuildInputs
+  setuptools,
+
+  # dependencies
+  llvmlite,
+  numpy,
+
+  # tests
   numba,
   pytestCheckHook,
-
-  config,
+  pytest-xdist,
+  writableTmpDirAsHomeHook,
+  writers,
+  python,
 
   # CUDA-only dependencies:
   addDriverRunpath,
@@ -23,6 +26,7 @@
   cudaPackages,
 
   # CUDA flags:
+  config,
   cudaSupport ? config.cudaSupport,
   testsWithoutSandbox ? false,
   doFullCheck ? false,
@@ -31,31 +35,46 @@
 let
   cudatoolkit = cudaPackages.cuda_nvcc;
 in
-buildPythonPackage rec {
-  version = "0.63.1";
+buildPythonPackage (finalAttrs: {
+  version = "0.65.1";
   pname = "numba";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "numba";
     repo = "numba";
-    tag = version;
+    tag = finalAttrs.version;
     # Upstream uses .gitattributes to inject information about the revision
     # hash and the refname into `numba/_version.py`, see:
     #
     # - https://git-scm.com/docs/gitattributes#_export_subst and
     # - https://github.com/numba/numba/blame/5ef7c86f76a6e8cc90e9486487294e0c34024797/numba/_version.py#L25-L31
     postFetch = ''
-      sed -i 's/git_refnames = "[^"]*"/git_refnames = " (tag: ${src.tag})"/' $out/numba/_version.py
+      sed -i 's/git_refnames = "[^"]*"/git_refnames = " (tag: ${finalAttrs.src.tag})"/' $out/numba/_version.py
     '';
-    hash = "sha256-M7Hdc1Qakclz7i/HujBUqVEWFsHj9ZGQDzb8Ze9AztA=";
+    hash = "sha256-DMmUyTElDFyMK4BUQ4EhDNmG43lOWQHurKbnSyhAs5k=";
   };
+
+  patches = [
+    ./numpy2.5.patch
+  ]
+  ++ lib.optionals cudaSupport [
+    (replaceVars ./cuda_path.patch {
+      cuda_toolkit_path = cudatoolkit;
+      cuda_toolkit_lib_path = lib.getLib cudatoolkit;
+    })
+  ];
 
   postPatch = ''
     substituteInPlace numba/cuda/cudadrv/driver.py \
       --replace-fail \
         "dldir = [" \
         "dldir = [ '${addDriverRunpath.driverLink}/lib', "
+
+    substituteInPlace setup.py \
+      --replace-fail 'max_numpy_run_version = "2.5"' 'max_numpy_run_version = "2.6"'
+    substituteInPlace numba/__init__.py \
+      --replace-fail "(2, 4)" "(2, 6)"
   '';
 
   build-system = [
@@ -79,20 +98,14 @@ buildPythonPackage rec {
     llvmlite
   ];
 
-  patches = lib.optionals cudaSupport [
-    (replaceVars ./cuda_path.patch {
-      cuda_toolkit_path = cudatoolkit;
-      cuda_toolkit_lib_path = lib.getLib cudatoolkit;
-    })
-  ];
-
   nativeCheckInputs = [
     pytestCheckHook
+    pytest-xdist
+    writableTmpDirAsHomeHook
   ];
 
+  # https://github.com/NixOS/nixpkgs/issues/255262
   preCheck = ''
-    export HOME="$(mktemp -d)"
-    # https://github.com/NixOS/nixpkgs/issues/255262
     cd $out
   '';
 
@@ -140,16 +153,13 @@ buildPythonPackage rec {
       doFullCheck = true;
       testsWithoutSandbox = false;
     };
-    numpy_1 = numba.override {
-      numpy = numpy_1;
-    };
   };
 
   meta = {
-    changelog = "https://numba.readthedocs.io/en/stable/release/${version}-notes.html";
+    changelog = "https://numba.readthedocs.io/en/stable/release/${finalAttrs.version}-notes.html";
     description = "Compiling Python code using LLVM";
     homepage = "https://numba.pydata.org/";
     license = lib.licenses.bsd2;
     mainProgram = "numba";
   };
-}
+})

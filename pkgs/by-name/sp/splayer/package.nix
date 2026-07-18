@@ -6,27 +6,33 @@
   fetchPnpmDeps,
   pnpmConfigHook,
   nodejs,
-  electron,
+  electron_41,
   rustPlatform,
   cargo,
   rustc,
   python3,
+  pkg-config,
+  openssl,
   makeWrapper,
   copyDesktopItems,
   makeDesktopItem,
   nix-update-script,
   removeReferencesTo,
 }:
+let
+  electron = electron_41;
+  pnpm = pnpm_10;
+in
 stdenv.mkDerivation (finalAttrs: {
   pname = "splayer";
-  version = "3.0.0-beta.9";
+  version = "3.1.1";
 
   src = fetchFromGitHub {
-    owner = "imsyy";
+    owner = "SPlayer-Dev";
     repo = "SPlayer";
     tag = "v${finalAttrs.version}";
     fetchSubmodules = false;
-    hash = "sha256-+9F4ckATxRE+/PhMi5c1GVDq5V9QMOogCD9uT6QkREM=";
+    hash = "sha256-7oLFJqZ1Apq2GK5G3r10I+c3liSweDD2ZPhjpq0f+bM=";
   };
 
   pnpmDeps = fetchPnpmDeps {
@@ -34,11 +40,15 @@ stdenv.mkDerivation (finalAttrs: {
       pname
       version
       src
+      patches
       ;
-    pnpm = pnpm_10;
-    fetcherVersion = 2;
-    hash = "sha256-tAOtrxQasIQ1IS2jKdcX4KEM5p3zhshqw8phzsj667Q=";
+    inherit pnpm;
+    fetcherVersion = 3;
+    hash = "sha256-HCSuCtJXaRMLCCZIKQ4ElDkrlYXFUIsHfK1H3pUSQX4=";
   };
+
+  # When pnpm >= 10.29.3 and electron-builder < 26.8.2, it causes the package to fail at runtime; this patch will be removed once the upstream releases a version that includes the new version of electron-builder.
+  patches = [ ./electron-builder-26.8.2.patch ];
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     inherit (finalAttrs)
@@ -46,12 +56,12 @@ stdenv.mkDerivation (finalAttrs: {
       version
       src
       ;
-    hash = "sha256-QKk1coOuZNaqKgvbBgorvOotHmTJ+YXTHBfyhF0L37E=";
+    hash = "sha256-dv8WqT6ei0dMwXcTQmUVHO9u1nGZ8iGhP2S8DpL+Hxk=";
   };
 
   nativeBuildInputs = [
     pnpmConfigHook
-    pnpm_10
+    pnpm
     nodejs
     rustPlatform.cargoSetupHook
     cargo
@@ -59,7 +69,15 @@ stdenv.mkDerivation (finalAttrs: {
     python3
     makeWrapper
     copyDesktopItems
+    pkg-config
   ];
+
+  buildInputs = [
+    openssl
+  ];
+
+  strictDeps = true;
+  __structuredAttrs = true;
 
   env.ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
 
@@ -80,16 +98,15 @@ stdenv.mkDerivation (finalAttrs: {
     # of better-sqlite3. It has a native part that it wants to build using a
     # script which is disallowed.
     # What's more, we need to use headers from electron to avoid ABI mismatches.
-    # Adapted from mkYarnModules.
     for f in $(find . -path '*/node_modules/better-sqlite3' -type d); do
       (cd "$f" && (
       npm run build-release --offline --nodedir="${electron.headers}"
+      rm -rf build/Release/{.deps,obj,obj.target,test_extension.node}
       find build -type f -exec \
         ${lib.getExe removeReferencesTo} \
         -t "${electron.headers}" {} \;
       ))
     done
-    rm -rf build/Release/{.deps,obj,obj.target,test_extension.node}
 
     pnpm build
 
@@ -147,8 +164,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = {
     description = "Simple Netease Cloud Music player";
-    homepage = "https://github.com/imsyy/SPlayer";
-    changelog = "https://github.com/imsyy/SPlayer/releases/tag/v${finalAttrs.version}";
+    homepage = "https://github.com/SPlayer-Dev/SPlayer";
+    changelog = "https://github.com/SPlayer-Dev/SPlayer/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.agpl3Only;
     maintainers = with lib.maintainers; [ ccicnce113424 ];
     mainProgram = "splayer";

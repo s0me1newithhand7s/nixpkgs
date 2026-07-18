@@ -29,14 +29,14 @@
 
 buildPythonPackage rec {
   pname = "orjson";
-  version = "3.11.4";
+  version = "3.11.9";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "ijl";
     repo = "orjson";
     tag = version;
-    hash = "sha256-LK3Up6bAWZkou791nrA9iHlgfDLbk196iTn3CBfeyYc=";
+    hash = "sha256-CCwpD6pzO80GlMvjJt4HURQxbghYg53OG/6ZIJWggNU=";
   };
 
   patches = lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
@@ -46,7 +46,7 @@ buildPythonPackage rec {
 
   cargoDeps = rustPlatform.fetchCargoVendor {
     inherit pname version src;
-    hash = "sha256-TdZtbb9zR0T+0eauEgRVrDKN2eyCNfEQCJziPlKPWpI=";
+    hash = "sha256-F1TFEj26trVV0TjK6tkS8kiorWRF0uijb1jQko7RDSM=";
   };
 
   nativeBuildInputs = [

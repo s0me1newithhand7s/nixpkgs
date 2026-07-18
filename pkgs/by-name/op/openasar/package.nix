@@ -1,6 +1,6 @@
 {
   lib,
-  stdenv,
+  stdenvNoCC,
   fetchFromGitHub,
   unstableGitUpdater,
   nodejs,
@@ -12,15 +12,15 @@
   discord-development,
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "openasar";
-  version = "0-unstable-2025-11-21";
+  version = "0-unstable-2026-07-12";
 
   src = fetchFromGitHub {
     owner = "GooseMod";
     repo = "OpenAsar";
-    rev = "5b259e4efaf9eee69aeca7b2ef153e5bfedc35d0";
-    hash = "sha256-HNdZK7r0nC3r1SLojmZXQFVI/1/wLnAhrkQZMJJChH8=";
+    rev = "5a05f49043d169fe0832e5c5a2e74d08a06f0bd3";
+    hash = "sha256-fVOoqdnD2PKmpJKIzjFcGNa5Yg73CvzDH4Y1fu11xVE=";
   };
 
   postPatch = ''

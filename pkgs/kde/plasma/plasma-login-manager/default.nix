@@ -11,7 +11,6 @@ mkKdeDerivation {
   pname = "plasma-login-manager";
 
   patches = [
-    ./config-mtime.patch
     ./config-path.patch
 
     (replaceVars ./kwin-path.patch {
@@ -32,4 +31,8 @@ mkKdeDerivation {
     "-DUID_MAX=29999"
     "-DINSTALL_PAM_CONFIGURATION=OFF"
   ];
+
+  postInstall = ''
+    install -Dm444 ${./defaults.conf} $out/lib/plasmalogin/defaults.conf
+  '';
 }

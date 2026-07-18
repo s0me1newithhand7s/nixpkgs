@@ -3,7 +3,6 @@
   stdenv,
   fetchurl,
   autoPatchelfHook,
-  makeBinaryWrapper,
   undmg,
   versionCheckHook,
   xz,
@@ -15,26 +14,22 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "kiro-cli";
-  version = "1.26.0";
+  version = "2.13.0";
 
   src =
-    let
-      darwinDmg = fetchurl {
-        url = "https://desktop-release.q.us-east-1.amazonaws.com/${finalAttrs.version}/Kiro%20CLI.dmg";
-        hash = "sha256-s3//DLCh48NgJ1JdBO2oG3iT82MjTbh98a/pRCnhRhc=";
-      };
-    in
     {
       x86_64-linux = fetchurl {
         url = "https://desktop-release.q.us-east-1.amazonaws.com/${finalAttrs.version}/kirocli-x86_64-linux.tar.gz";
-        hash = "sha256-aB8snKmASQM9lOuyyvsqlF5TuJ7nFLd6OlUvfj25G9Q=";
+        hash = "sha256-8qEnlNv8lQK3SCjYJ/AdfWB/RELpjLI0VQ7n4vKA7DI=";
       };
       aarch64-linux = fetchurl {
         url = "https://desktop-release.q.us-east-1.amazonaws.com/${finalAttrs.version}/kirocli-aarch64-linux.tar.gz";
-        hash = "sha256-QDUgDsmUViapPViNLauAUnT/ZnlAjxxP4fnVR8+pbJE=";
+        hash = "sha256-uKR5ZxuijDgfIJ4DmDVhN5XGHDyOyiRkLcTie2iuzZU=";
       };
-      x86_64-darwin = darwinDmg;
-      aarch64-darwin = darwinDmg;
+      aarch64-darwin = fetchurl {
+        url = "https://desktop-release.q.us-east-1.amazonaws.com/${finalAttrs.version}/Kiro%20CLI.dmg";
+        hash = "sha256-GAK8+adzrEc1kXtHVCNC1aU09C86D9mroSQv7dXvbfo=";
+      };
     }
     .${system} or (throw "Unsupported system: ${system}");
 
@@ -42,15 +37,13 @@ stdenv.mkDerivation (finalAttrs: {
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    makeBinaryWrapper
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isLinux [
-    autoPatchelfHook
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isDarwin [
-    undmg
-  ];
+  nativeBuildInputs =
+    lib.optionals stdenv.hostPlatform.isLinux [
+      autoPatchelfHook
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      undmg
+    ];
 
   buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     stdenv.cc.cc.lib
@@ -68,16 +61,14 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preInstall
   ''
   + lib.optionalString stdenv.hostPlatform.isLinux ''
-    install -Dm755 bin/kiro-cli $out/bin/.kiro-wrapped
+    install -Dm755 bin/kiro-cli -t $out/bin
     install -Dm755 bin/kiro-cli-chat $out/bin/kiro-cli-chat
     install -Dm755 bin/kiro-cli-term $out/bin/kiro-cli-term
-    makeBinaryWrapper $out/bin/.kiro-wrapped $out/bin/kiro \
-      --prefix PATH : $out/bin
   ''
   + lib.optionalString stdenv.hostPlatform.isDarwin ''
     mkdir -p $out/bin $out/Applications
     cp -r "../Kiro CLI.app" "$out/Applications/"
-    ln -s "$out/Applications/Kiro CLI.app/Contents/MacOS/kiro-cli" $out/bin/kiro
+    ln -s "$out/Applications/Kiro CLI.app/Contents/MacOS/kiro-cli" $out/bin/kiro-cli
     for bin in kiro-cli-chat kiro-cli-term; do
       if [[ -e "$out/Applications/Kiro CLI.app/Contents/MacOS/$bin" ]]; then
         ln -s "$out/Applications/Kiro CLI.app/Contents/MacOS/$bin" "$out/bin/$bin"
@@ -95,12 +86,14 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://kiro.dev";
     license = lib.licenses.unfree;
     sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
-    maintainers = [ lib.maintainers.jamesward ];
-    mainProgram = "kiro";
+    maintainers = with lib.maintainers; [
+      jamesward
+      pmw
+    ];
+    mainProgram = "kiro-cli";
     platforms = [
       "x86_64-linux"
       "aarch64-linux"
-      "x86_64-darwin"
       "aarch64-darwin"
     ];
   };

@@ -5,35 +5,37 @@
   installShellFiles,
   git,
   stdenv,
+  writableTmpDirAsHomeHook,
+  nix-update-script,
 }:
 
 buildGoModule (finalAttrs: {
   pname = "entire";
-  version = "0.4.4";
+  version = "0.8.42";
 
   src = fetchFromGitHub {
     owner = "entireio";
     repo = "cli";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-6/TsSmJ0z72Ta5ZihO06uV4Mik+fFpm8eCa7d5zlq24=";
+    hash = "sha256-luxUyIScUCY/hd2vp32HcItRd3xfra+SDYdzf3q8Dv0=";
   };
 
-  vendorHash = "sha256-rh2VhdwNT5XJYCVjj8tnoY7cacEhc/kcxi0NHYFPYO8=";
-
-  postPatch = ''
-    substituteInPlace go.mod --replace-fail "go 1.25.6" "go 1.25.5"
-  '';
+  vendorHash = "sha256-N8VH9uHPfF+WX1LF6ysV+mkhgpb81Txz1Y68+DoxQ3A=";
 
   subPackages = [ "cmd/entire" ];
 
   ldflags = [
     "-s"
-    "-w"
+    "-X=github.com/entireio/cli/cmd/entire/cli/versioninfo.Version=${finalAttrs.version}"
+    "-X=github.com/entireio/cli/cmd/entire/cli/versioninfo.Commit=${finalAttrs.src.rev}"
   ];
 
   nativeBuildInputs = [ installShellFiles ];
 
-  nativeCheckInputs = [ git ];
+  nativeCheckInputs = [
+    git
+    writableTmpDirAsHomeHook
+  ];
 
   postInstall = lib.optionalString (stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
     installShellCompletion --cmd entire \
@@ -41,6 +43,8 @@ buildGoModule (finalAttrs: {
       --fish <($out/bin/entire completion fish) \
       --zsh <($out/bin/entire completion zsh)
   '';
+
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "CLI tool that captures AI agent sessions alongside git commits";
@@ -50,9 +54,13 @@ buildGoModule (finalAttrs: {
       of how code was written in your repo.
     '';
     homepage = "https://github.com/entireio/cli";
-    changelog = "https://github.com/entireio/cli/releases/tag/v${finalAttrs.version}";
+    changelog = "https://github.com/entireio/cli/blob/${finalAttrs.src.tag}/CHANGELOG.md";
     license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ sheeeng ];
+    maintainers = with lib.maintainers; [
+      iamanaws
+      sheeeng
+      squishykid
+    ];
     mainProgram = "entire";
   };
 })

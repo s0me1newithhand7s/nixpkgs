@@ -41,15 +41,20 @@
 
 buildPythonPackage rec {
   pname = "starlette-admin";
-  version = "0.16.0";
+  version = "0.17.0";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = "jowilf";
     repo = "starlette-admin";
     tag = version;
-    hash = "sha256-JVvrfbyKillkx6fOx4DEbHZoHIPxF1Gn3HzkxyJc66o=";
+    hash = "sha256-1hLBGFECucEv1pHDGtk5GXUKUmWWetA72dnn7ayHA4U=";
   };
+
+  patches = [
+    # "Cannot use both [tool.pytest] (native TOML types) and [tool.pytest.ini_options] (string-based INI format) simultaneously"
+    ./0001-fix-pytest-pyproject-collision.patch
+  ];
 
   build-system = [ hatchling ];
 

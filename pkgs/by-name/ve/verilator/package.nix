@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  bash,
   perl,
   flex,
   bison,
@@ -19,19 +20,14 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "verilator";
-  version = "5.044";
-
-  # Verilator gets the version from this environment variable
-  # if it can't do git describe while building.
-  VERILATOR_SRC_VERSION = "v${finalAttrs.version}";
+  version = "5.050";
 
   src = fetchFromGitHub {
     owner = "verilator";
     repo = "verilator";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-z3jYNzhnZ+OocDAbmsRBWHNNPXLLvExKK1TLDi9JzPQ=";
+    hash = "sha256-ZOwBBbVNP0PaYUvrjdvbWu88fZOZ6IJ8BHAiajcOjP8=";
   };
-
   enableParallelBuilding = true;
   buildInputs = [
     perl
@@ -76,8 +72,8 @@ stdenv.mkDerivation (finalAttrs: {
     test_regress/t/t_a1_first_cc.py \
     test_regress/t/t_a2_first_sc.py \
     ci/* ci/docker/run/* ci/docker/run/hooks/* ci/docker/buildenv/build.sh
-    # verilator --gdbbt uses /bin/echo to test if gdb works.
-    substituteInPlace bin/verilator --replace-fail "/bin/echo" "${coreutils}/bin/echo"
+    # verilator --gdbbt uses /bin/sh to test if gdb works.
+    substituteInPlace bin/verilator --replace-fail "/bin/sh" "${bash}/bin/sh"
   '';
   # grep '^#!/' -R . | grep -v /nix/store | less
   # (in nix-shell after patchPhase)
@@ -88,6 +84,10 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   env = {
+    # Verilator gets the version from this environment variable
+    # if it can't do git describe while building.
+    VERILATOR_SRC_VERSION = "v${finalAttrs.version}";
+
     SYSTEMC_INCLUDE = "${lib.getDev systemc}/include";
     SYSTEMC_LIBDIR = "${lib.getLib systemc}/lib";
   };
@@ -103,7 +103,6 @@ stdenv.mkDerivation (finalAttrs: {
     platforms = lib.platforms.unix;
     maintainers = with lib.maintainers; [
       thoughtpolice
-      amiloradovsky
     ];
   };
 })

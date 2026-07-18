@@ -7,13 +7,13 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "tt-kmd";
-  version = "2.6.0";
+  version = "2.7.0";
 
   src = fetchFromGitHub {
     owner = "tenstorrent";
     repo = "tt-kmd";
     tag = "ttkmd-${finalAttrs.version}";
-    hash = "sha256-MCfz5c42Jtm/SoTjyD+P5DgSzJy0T/VpwShuJNyPyTM=";
+    hash = "sha256-+4Wqj91EsPthKQXajiDd9Y77oTp9BNqCgFCQrTAp6ag=";
   };
 
   nativeBuildInputs = kernel.moduleBuildDependencies;
@@ -40,7 +40,7 @@ stdenv.mkDerivation (finalAttrs: {
     description = "Tenstorrent Kernel Module";
     homepage = "https://github.com/tenstorrent/tt-kmd";
     maintainers = with lib.maintainers; [ RossComputerGuy ];
-    license = with lib.licenses; [ gpl2Only ];
+    license = lib.licenses.gpl2Only;
     platforms = lib.platforms.linux;
   };
 })

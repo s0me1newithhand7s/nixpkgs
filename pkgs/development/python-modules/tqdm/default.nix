@@ -16,12 +16,12 @@
 
 buildPythonPackage rec {
   pname = "tqdm";
-  version = "4.67.1";
+  version = "4.67.3";
   pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-+K75xSwIwTpl8w6jT05arD/Ro0lZh51+WeYwJyhmJ/I=";
+    hash = "sha256-fYJfA/iSRO9z8dTOGTyxd0qBef2W8x1+Hc3mIJK5YLs=";
   };
 
   nativeBuildInputs = [
@@ -50,7 +50,7 @@ buildPythonPackage rec {
   # Too sensitive for on Hydra.
   disabledTests = [ "perf" ];
 
-  LC_ALL = "en_US.UTF-8";
+  env.LC_ALL = "en_US.UTF-8";
 
   pythonImportsCheck = [ "tqdm" ];
 
@@ -59,6 +59,7 @@ buildPythonPackage rec {
     mainProgram = "tqdm";
     homepage = "https://github.com/tqdm/tqdm";
     changelog = "https://tqdm.github.io/releases/";
-    license = with lib.licenses; [ mit ];
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ miniharinn ];
   };
 }

@@ -46,14 +46,14 @@ stdenvNoCC.mkDerivation (
     }
     rec {
       pname = "Avalonia";
-      version = "11.3.12";
+      version = "11.3.13";
 
       src = fetchFromGitHub {
         owner = "AvaloniaUI";
         repo = "Avalonia";
         tag = version;
         fetchSubmodules = true;
-        hash = "sha256-pRIR4Hr/6YjOXmznBclTmQ+Ql7+wJAMANTXOJ/VDpYI=";
+        hash = "sha256-jBpzPm9zKSrhuaOwhfSRaWwrESgGI0iHPhrU3JczHwY=";
       };
 
       patches = [
@@ -70,11 +70,21 @@ stdenvNoCC.mkDerivation (
         ./0004-disable-windows-desktop.patch
       ];
 
-      # this needs to be match the version being patched above
-      UNICODE_CHARACTER_DATABASE = fetchzip {
-        url = "https://www.unicode.org/Public/15.0.0/ucd/UCD.zip";
-        hash = "sha256-jj6bX46VcnH7vpc9GwM9gArG+hSPbOGL6E4SaVd0s60=";
-        stripRoot = false;
+      env = {
+        # this needs to be match the version being patched above
+        UNICODE_CHARACTER_DATABASE = fetchzip {
+          url = "https://www.unicode.org/Public/15.0.0/ucd/UCD.zip";
+          hash = "sha256-jj6bX46VcnH7vpc9GwM9gArG+hSPbOGL6E4SaVd0s60=";
+          stripRoot = false;
+        };
+        FONTCONFIG_FILE =
+          let
+            fc = makeFontsConf { fontDirectories = [ liberation_ttf ]; };
+          in
+          runCommand "fonts.conf" { } ''
+            substitute ${fc} $out \
+            --replace-fail "/etc/" "${fontconfig.out}/etc/"
+          '';
       };
 
       postPatch = ''
@@ -142,15 +152,6 @@ stdenvNoCC.mkDerivation (
       #  - NuGet packages config '/build/source/nukebuild/_build.csproj'
       linkNuGetPackagesAndSources = true;
 
-      FONTCONFIG_FILE =
-        let
-          fc = makeFontsConf { fontDirectories = [ liberation_ttf ]; };
-        in
-        runCommand "fonts.conf" { } ''
-          substitute ${fc} $out \
-            --replace-fail "/etc/" "${fontconfig.out}/etc/"
-        '';
-
       preConfigure = ''
         # closed source (telemetry?) https://github.com/AvaloniaUI/Avalonia/discussions/16878
         dotnet remove packages/Avalonia/Avalonia.csproj package Avalonia.BuildServices
@@ -202,7 +203,7 @@ stdenvNoCC.mkDerivation (
 
       meta = {
         homepage = "https://avaloniaui.net/";
-        license = [ lib.licenses.mit ];
+        license = lib.licenses.mit;
         maintainers = with lib.maintainers; [ corngood ];
         description = "Cross-platform UI framework for dotnet";
         sourceProvenance = with lib.sourceTypes; [

@@ -47,7 +47,7 @@ stdenv.mkDerivation (finalAttrs: {
     substituteInPlace CMakeLists.txt \
       --replace-fail \
         "cmake_minimum_required (VERSION 2.8.11)" \
-        "cmake_minimum_required (VERSION 3.10)" \
+        "cmake_minimum_required (VERSION 3.10)"
   '';
 
   buildInputs = [ boost ];
@@ -129,7 +129,6 @@ stdenv.mkDerivation (finalAttrs: {
     maintainers = with lib.maintainers; [ avnik ];
     platforms = [
       "x86_64-linux"
-      "x86_64-darwin"
     ];
     license = lib.licenses.bsd3;
   };
